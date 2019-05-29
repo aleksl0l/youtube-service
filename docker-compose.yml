@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:11.3-alpine
+    environment:
+      POSTGRES_USER: videos
+      POSTGRES_PASSWORD: videos
+      POSTGRES_DB: videos
+  redis:
+    image: redis:alpine
+  web:
+    build: .
+    command: bash -c "python manage.py migrate --noinput && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+      - redis
+  celery:
+    build: .
+    command: celery -A umniy_polis_test worker -l info
+    depends_on:
+      - db
+      - redis
+  celery-beat:
+    build: .
+    command: celery -A umniy_polis_test beat -l info
+    depends_on:
+      - db
+      - redis
